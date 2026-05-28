@@ -8,6 +8,7 @@ const fsModule = require('fs');
 
 const upload = multer({ dest: path.join(__dirname, 'uploads/') });
 const app = express();
+module.exports = app;
 
 app.use(express.static(path.join(__dirname)));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -435,4 +436,4 @@ function startServer(port) {
   });
 }
 
-startServer(BASE_PORT);
+if (require.main === module) { startServer(BASE_PORT); }
