@@ -23,20 +23,23 @@ const apiKeys = [
 
 if (apiKeys.length === 0) {
   console.warn('⚠️ No Gemini API keys found. Running in fallback mode with mock AI responses.');
-} else {
-  console.log(`✅ Loaded ${apiKeys.length} Gemini API key(s) for rotation.`);
 }
 
 let currentKeyIndex = 0;
 
 function getGenAI() {
+  if (apiKeys.length === 0) {
+    throw new Error('No Gemini API keys configured');
+  }
   return new GoogleGenerativeAI(apiKeys[currentKeyIndex]);
 }
 
 function rotateKey() {
-  const prevIndex = currentKeyIndex;
+  if (apiKeys.length <= 1) {
+    return;
+  }
   currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length;
-  console.log(`🔄 Rotated API key: key ${prevIndex + 1} -> key ${currentKeyIndex + 1}`);
+  console.log('🔄 Rotated Gemini API key.');
 }
 
 let sidequests = [];
@@ -87,9 +90,30 @@ Generate ONLY a JSON object with this structure (no extra text):
 }`
 };
 
+function createMockSidequest(name, selfDescription, feeling, difficulty) {
+return {
+  id: uuid.v4(),
+  name,
+  selfDescription,
+  feeling,
+  difficulty,
+  timer: difficulty === 'Easy' ? '10 min' : difficulty === 'Medium' ? '25 min' : '50 min',
+  generatedActivity: `Try something ${feeling}! Take a moment to reflect on what makes you feel this way. This sidequest encourages you to embrace your current mood and find joy in the moment.`,
+  verificationQuestion: "What was the most interesting part of completing this sidequest?",
+  userAnswer: null,
+  status: 'pending',
+  createdAt: new Date().toISOString(),
+  isMockData: true
+};
+}
+
 async function generateSidequest(name, selfDescription, feeling, difficulty) {
-  let attempts = 0;
-  while (attempts < apiKeys.length) {
+if (apiKeys.length === 0) {
+  return createMockSidequest(name, selfDescription, feeling, difficulty);
+}
+
+let attempts = 0;
+while (attempts < apiKeys.length) {
     try {
       
       let prompt = difficultyPrompts[difficulty];
@@ -144,42 +168,15 @@ async function generateSidequest(name, selfDescription, feeling, difficulty) {
         attempts++;
       } else {
         console.error('Gemini API Error:', error);
-        // Fallback: return mock sidequest if all keys fail
         console.warn('⚠️ All API keys failed. Using mock sidequest.');
-        return {
-          id: uuid.v4(),
-          name,
-          selfDescription,
-          feeling,
-          difficulty,
-          timer: difficulty === 'Easy' ? '10 min' : difficulty === 'Medium' ? '25 min' : '50 min',
-          generatedActivity: `Try something ${feeling}! Take a moment to reflect on what makes you feel this way. This sidequest encourages you to embrace your current mood and find joy in the moment.`,
-          verificationQuestion: "What was the most interesting part of completing this sidequest?",
-          userAnswer: null,
-          status: 'pending',
-          createdAt: new Date().toISOString(),
-          isMockData: true
-        };
+        return createMockSidequest(name, selfDescription, feeling, difficulty);
       }
     }
   }
   
   
   console.warn('⚠️ All API keys exhausted. Using mock sidequest.');
-  return {
-    id: uuid.v4(),
-    name,
-    selfDescription,
-    feeling,
-    difficulty,
-    timer: difficulty === 'Easy' ? '10 min' : difficulty === 'Medium' ? '25 min' : '50 min',
-    generatedActivity: `Try something ${feeling}! Take a moment to reflect on what makes you feel this way. This sidequest encourages you to embrace your current mood and find joy in the moment.`,
-    verificationQuestion: "What was the most interesting part of completing this sidequest?",
-    userAnswer: null,
-    status: 'pending',
-    createdAt: new Date().toISOString(),
-    isMockData: true
-  };
+  return createMockSidequest(name, selfDescription, feeling, difficulty);
 }
 
 function fileToGenerativePart(filePath, mimeType) {
@@ -192,6 +189,10 @@ function fileToGenerativePart(filePath, mimeType) {
 }
 
 async function evaluateAnswer(activity, answer, imageFile) {
+  if (apiKeys.length === 0) {
+    return { accepted: true, rating: "⭐⭐⭐", feedback: "The AI Evaluator nods in approval (API Fallback - no keys configured)." };
+  }
+
   let attempts = 0;
   while (attempts < apiKeys.length) {
     try {
