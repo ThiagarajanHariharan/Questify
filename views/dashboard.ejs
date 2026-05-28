@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Questify</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    </head>
+<body>
+    <%- include('navbar') %>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-10 mx-auto">
+                <% if (typeof error !== 'undefined' && error) { %>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <%= error %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <% } %>
+                
+                <h1 class="mb-4">📊 Questify Dashboard</h1>
+
+               
+                <div class="row mb-4">
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-muted">Total Quests</h5>
+                                <h2 class="text-primary"><%= totalCount %></h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-muted">Completed</h5>
+                                <h2 class="text-success"><%= completedCount %></h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-muted">Pending</h5>
+                                <h2 class="text-warning"><%= pendingCount %></h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-muted">Progress</h5>
+                                <h2 class="text-info"><%= progressPercent %>%</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="mb-4">
+                    <div class="progress" style="height: 25px;">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: <%= progressPercent %>%" 
+                             aria-valuenow="<%= progressPercent %>" aria-valuemin="0" aria-valuemax="100">
+                            <%= progressPercent %>%
+                        </div>
+                    </div>
+                    <small class="text-muted">You've completed <%= completedCount %> of <%= totalCount %> sidequests</small>
+                </div>
+
+                <div class="d-flex justify-content-center gap-3 mb-5">
+                    <a href="/add" class="btn btn-primary btn-lg">+ Create New Quest</a>
+                    <form method="POST" action="/surprise-me" class="m-0">
+                        <button type="submit" class="btn btn-info btn-lg text-white">🎲 Surprise Me!</button>
+                              </form>
+      </div>
+
+               
+                <% const completedWithImages = sidequests.filter(sq => sq.imagePath); %>
+                <% if (completedWithImages.length > 0) { %>
+                <div class="mb-5">
+                    <h3 class="mb-3">🏅 Hall of Fame - Quest Achievements</h3>
+                    <div id="questCarousel" class="carousel slide rounded-lg shadow-lg overflow-hidden" data-bs-ride="carousel">
+                        <!-- Indicators -->
+                        <div class="carousel-indicators">
+                            <% completedWithImages.forEach(function(sq, i) { %>
+                                <button type="button" data-bs-target="#questCarousel" data-bs-slide-to="<%= i %>"
+                                    class="<%= i === 0 ? 'active' : '' %>" aria-label="Slide <%= i + 1 %>" style="background-color: rgba(255,255,255,0.7);"></button>
+                            <% }); %>
+                        </div>
+
+                    
+                        <div class="carousel-inner" style="height: 450px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);">
+                            <% completedWithImages.forEach(function(sq, i) { %>
+                                <div class="carousel-item <%= i === 0 ? 'active' : '' %> h-100">
+                                    <img src="<%= sq.imagePath %>" class="d-block w-100 h-100" style="object-fit: cover; opacity: 0.9;" alt="<%= sq.name %>'s quest proof">
+                                    <div class="carousel-caption d-block pb-4" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">
+                                        <h4 class="fw-bold mb-2" style="color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.7);"><%= sq.name %>'s Quest Achievement</h4>
+                                        <p class="mb-2" style="color: #e0e0e0;">
+                                            <strong>Feeling:</strong> <em><%= sq.feeling %></em> | 
+                                            <strong>Timer:</strong> <%= sq.timer %>
+                                        </p>
+                                        <p class="mb-2" style="color: #e0e0e0;">
+                                            <strong>Activity:</strong> <%= sq.generatedActivity.substring(0, 100) %>...
+                                        </p>
+                                        <p class="mb-2">
+                                            <span class="badge <%= sq.difficulty === 'Easy' ? 'bg-success' : sq.difficulty === 'Medium' ? 'bg-warning text-dark' : 'bg-danger' %>">
+                                                <%= sq.difficulty %> Difficulty
+                                            </span>
+                                            <% if (sq.rating) { %><span class="ms-2 badge bg-info"><%= sq.rating %></span><% } %>
+                                        </p>
+                                        <% if (sq.feedback) { %>
+                                            <p class="mb-3" style="color: #ffd700; font-style: italic; font-size: 0.95rem;">
+                                                💬 "<%= sq.feedback %>"
+                                            </p>
+                                        <% } %>
+                                        <a href="/sidequest/<%= sq.id %>" class="btn btn-sm btn-light">View Full Quest Details</a>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+
+                       
+                        <button class="carousel-control-prev" type="button" data-bs-target="#questCarousel" data-bs-slide="prev" style="opacity: 0.7;">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#questCarousel" data-bs-slide="next" style="opacity: 0.7;">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+
+                    <!-- Carousel Stats -->
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <div class="alert alert-success" role="alert">
+                                <strong>🎉 You have <%= completedWithImages.length %> completed quests to celebrate!</strong> 
+                                Keep up the amazing work!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <% } %>
+
+                
+                <div class="mb-4">
+                    <h3 class="mb-3">Recent Sidequests</h3>
+
+                    <% if (sidequests.length === 0) { %>
+                        <div class="alert alert-info">
+                            No sidequests yet. <a href="/add" class="alert-link">Create your first one!</a>
+                        </div>
+                    <% } else { %>
+                        <div class="row">
+                            <% sidequests.forEach(function(sq) { %>
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h5 class="card-title"><%= sq.name %>'s Quest</h5>
+                                                <div>
+                                                    <span class="badge <%= sq.difficulty === 'Easy' ? 'bg-success' : sq.difficulty === 'Medium' ? 'bg-warning text-dark' : 'bg-danger' %>">
+                                                        <%= sq.difficulty %>
+                                                    </span>
+                                                    <span class="badge bg-secondary ms-1">
+                                                        ⏱ <%= sq.timer %>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            
+                                            <p class="card-text"><strong>Mood:</strong> <%= sq.feeling %></p>
+                                            <p class="card-text text-truncate-2"><strong>Quest:</strong> <%= sq.generatedActivity %></p>
+                                            
+                                            <div class="d-flex gap-2 mt-3">
+                                                <a href="/sidequest/<%= sq.id %>" class="btn btn-sm btn-info">View</a>
+                                                <a href="/edit/<%= sq.id %>" class="btn btn-sm btn-warning">Edit</a>
+                                                <% if (sq.status === 'pending') { %>
+                                                    <a href="/complete/<%= sq.id %>" class="btn btn-sm btn-success">Complete</a>
+                                                <% } else { %>
+                                                    <span class="badge bg-success">✓ Completed</span>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

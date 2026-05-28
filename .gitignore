@@ -1,0 +1,5 @@
+.env
+.env.local
+apikeys.gitignore
+node_modules/
+uploads/

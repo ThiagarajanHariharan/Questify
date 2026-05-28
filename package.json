@@ -1,0 +1,31 @@
+{
+  "name": "questify",
+  "version": "1.0.0",
+  "description": "AI-powered sidequest generator",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test-keys": "node test-api-keys.js"
+  },
+  "keywords": [
+    "express",
+    "ejs",
+    "gemini",
+    "ai"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "dotenv": "^17.4.2",
+    "ejs": "^3.1.10",
+    "express": "^4.22.2",
+    "multer": "^2.1.1",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  },
+  "type": "commonjs"
+}
