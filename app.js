@@ -22,11 +22,10 @@ const apiKeys = [
 ].filter(key => key && key.trim() !== '');
 
 if (apiKeys.length === 0) {
-  console.error('❌ No Gemini API keys found! Please set GEMINI_API_KEY in your .env file.');
-  process.exit(1);
+  console.warn('⚠️ No Gemini API keys found. Running in fallback mode with mock AI responses.');
+} else {
+  console.log(`✅ Loaded ${apiKeys.length} Gemini API key(s) for rotation.`);
 }
-
-console.log(`✅ Loaded ${apiKeys.length} Gemini API key(s) for rotation.`);
 
 let currentKeyIndex = 0;
 
@@ -435,4 +434,8 @@ function startServer(port) {
   });
 }
 
-startServer(BASE_PORT);
+if (require.main === module) {
+  startServer(BASE_PORT);
+}
+
+module.exports = app;
